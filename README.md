@@ -1,2 +1,2 @@
 # Automated-Labeling
-Detect and lable items on convey belt automatically
+Detect and lable items on conveyor belt automatically
