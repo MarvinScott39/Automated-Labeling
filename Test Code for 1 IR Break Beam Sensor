@@ -1,0 +1,44 @@
+/*
+ * Test for 1 IR Breakbeam Sensor
+ */
+ 
+const int ledPin = 13;
+const int sensorPin= 4;
+
+//Declare Global Variable 
+int sensorState = 0, lastState = 0;
+
+void setup() {
+// put your setup code here, to run once:
+pinMode(ledPin, OUTPUT);
+pinMode(sensorPin, INPUT);
+digitalWrite(sensorPin, HIGH);
+
+Serial.begin(9600);
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  sensorState = digitalRead(sensorPin);
+
+  //check if the sensor beam is broken
+  //if it is, the sensorState is LOW:
+  if (sensorState == LOW){
+    //the LED will turn off:
+    digitalWrite(ledPin, LOW);
+  }
+  else
+  //the LED will turn on:
+  {
+    digitalWrite(ledPin, HIGH);
+  }
+  //if sensorState is not the same as lastState
+  if(sensorState && !lastState){
+    Serial.println("Unbroken");
+  }
+ //if the lastState is not the same as sensorState
+  if (!sensorState && lastState){
+    Serial.println("Broken");
+  }
+  lastState = sensorState;
+}
