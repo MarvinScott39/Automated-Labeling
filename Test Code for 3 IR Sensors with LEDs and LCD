@@ -1,0 +1,185 @@
+/*
+ *  3 Breakbeam Sensors, LCD, 3 LEDs
+ */
+
+//Import Libraries
+#include <LiquidCrystal.h>
+LiquidCrystal lcd(13,12,11,10,9,8); 
+
+//Establish associated variables to Arduino Pins
+const int ledPinSmall = 7;
+const int ledPinMedium = 6;
+const int ledPinLarge = 5;
+const int sensorPinSmall= 2;
+const int sensorPinMedium = 3;
+const int sensorPinLarge = 4;
+
+//Declare Global Variables 
+int sensorStateSmall = 0, lastStateSmall = 0;
+int sensorStateMedium = 0, lastStateMedium = 0;
+int sensorStateLarge = 0, lastStateLarge = 0;
+
+//Counters that track how many boxes of each type came through the conveyor belt
+int smallCount, mediumCount, largeCount =0;
+
+// put your setup code here, to run once:
+void setup() {
+//set LEDs to output
+pinMode(ledPinSmall, OUTPUT);
+pinMode(ledPinMedium, OUTPUT);
+pinMode(ledPinLarge, OUTPUT);
+
+//set IR sensors to input
+pinMode(sensorPinSmall, INPUT);
+pinMode(sensorPinMedium, INPUT);
+pinMode(sensorPinLarge, INPUT);
+
+//turn on sensors intitially
+digitalWrite(sensorPinSmall, HIGH);
+digitalWrite(sensorPinMedium, HIGH);
+digitalWrite(sensorPinLarge, HIGH);
+
+//code interrupt for when sensorPinSmall breaks link connection
+attachInterrupt(0, boxSize,FALLING);
+
+//set up a 16 character, 2 row LCD
+lcd.begin(16,2);
+lcd.clear();
+
+Serial.begin(9600);
+
+//Start up LCD counter
+boxCount();
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  
+  //code with LEDs to check if IR sensors are working
+  checkSM();
+  checkMD();
+  checkLG();
+
+  //code runs after the interrupt is called
+  //If sensorPinSmall losses its connection link, call boxCount method
+  if(digitalRead(sensorPinSmall)==LOW)
+  {
+    boxCount(); 
+  }  
+}
+
+//Increment counters depending on if the connection link between the infrared sensors
+//If the connection link between sensorPinLarge is broken, increment largeCount
+//Else if the connection link between sensorPinMedium is broken, increment mediumCount
+//Else increment smallCount
+void boxSize()
+{
+  if(digitalRead(sensorPinLarge) == LOW)
+  {
+    //increment largeCount by 1
+    largeCount++;
+  }
+    //increment mediumCount by 1
+    else if(digitalRead(sensorPinMedium) == LOW)
+    {
+      mediumCount++;
+    }
+    //increment smallCount by 1
+    else
+    {
+      smallCount++;
+    }
+  }
+
+//Check to see if the connection link between sensorPinSmall is broken
+void checkSM(){
+  sensorStateSmall = digitalRead(sensorPinSmall);
+
+  //check if the sensor beam is broken
+  //if it is, the sensorState is LOW:
+  if (sensorStateSmall == LOW){
+    //the LED will turn off:
+    digitalWrite(ledPinSmall, LOW);
+  }
+  else
+  //the LED will turn on:
+  {
+    digitalWrite(ledPinSmall, HIGH);
+  }
+  //if sensorState and
+  if(sensorStateSmall && !lastStateSmall){
+    Serial.println("Unbroken Small");
+  }
+  if (!sensorStateSmall && lastStateSmall){
+    Serial.println("Broken Small ");
+  }
+  lastStateSmall = sensorStateSmall;
+}
+
+//Check to see if the connection link between sensorPinMedium is broken
+void checkMD(){
+  sensorStateMedium = digitalRead(sensorPinMedium);
+
+  //check if the sensor beam is broken
+  //if it is, the sensorState is LOW:
+  if (sensorStateMedium == LOW){
+    //the LED will turn off:
+    digitalWrite(ledPinMedium, LOW);
+  }
+  else
+  //the LED will turn on:
+  {
+    digitalWrite(ledPinMedium, HIGH);
+  }
+  //if sensorState and
+  if(sensorStateMedium && !lastStateMedium){
+    Serial.println("Unbroken Medium");
+  }
+  if (!sensorStateMedium && lastStateMedium){
+    Serial.println("Broken Medium");
+  }
+  lastStateMedium = sensorStateMedium;
+}
+
+//Check to see if the connection link between sensorPinLarge is broken
+void checkLG(){
+  sensorStateLarge = digitalRead(sensorPinLarge);
+
+  //check if the sensor beam is broken
+  //if it is, the sensorState is LOW:
+  if (sensorStateLarge == LOW){
+    //the LED will turn off:
+    digitalWrite(ledPinLarge, LOW);
+  }
+  else
+  //the LED will turn on:
+  {
+    digitalWrite(ledPinLarge, HIGH);
+  }
+  //if sensorState and
+  if(sensorStateLarge && !lastStateLarge){
+    Serial.println("Unbroken Large");
+  }
+  if (!sensorStateLarge && lastStateLarge){
+    Serial.println("Broken Large");
+  }
+  lastStateLarge = sensorStateLarge;
+}
+
+//Print out the box counters to the LCD
+void boxCount(){
+    lcd.setCursor(0,0);
+    lcd.print("Box Count:");
+    lcd.setCursor(0,1);
+    lcd.print("S: ");
+    lcd.setCursor(2,1);
+    lcd.print(smallCount);
+    lcd.setCursor(5,1);
+    lcd.print("M: ");
+    lcd.setCursor(7,1);
+    lcd.print(mediumCount);
+    lcd.setCursor(10,1);
+    lcd.print("L: ");
+    lcd.setCursor(12,1);
+    lcd.print(largeCount);
+ }
